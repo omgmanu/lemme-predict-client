@@ -2,7 +2,7 @@ import { FC } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import { useWallet } from '@solana/wallet-adapter-react';
-import { GameResult, GameResultStatus } from '../types/Game';
+import { GameResult, GameResultStatus } from '../types/game';
 import { Link } from 'wouter';
 import { formatDate, formatSolAmount } from '../utils';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';

@@ -1,0 +1,12 @@
+services:
+  app:
+    container_name: react_vite_app
+    build:
+      context: .
+    ports:
+      - ${PORT}:${PORT}
+    environment:
+      - NODE_ENV=production
+      - VITE_API_URL=${VITE_API_URL}
+      - VITE_EXPLORER_URL=${VITE_EXPLORER_URL}
+      - VITE_NETWORK=${VITE_NETWORK}

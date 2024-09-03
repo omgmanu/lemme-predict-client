@@ -14,7 +14,7 @@ import {
   GameResult,
   GameResultStatus,
   GameResultStatusLabel,
-} from '../types/Game';
+} from '../types/game';
 import axios from 'axios';
 import { useQuery } from '@tanstack/react-query';
 import { formatPythPrice, formatSolAmount } from '../utils';
