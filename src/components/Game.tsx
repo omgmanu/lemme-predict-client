@@ -186,12 +186,12 @@ export const Game: FC = () => {
                 onChange={(e) => setPrediction(e.target.checked)}
               />
               <div className="swap-on">
-                <img src="/up-arrow.png" alt="Avatar Tailwind CSS Component" />
+                <img src="/up-arrow.png" alt="Up arrow" />
               </div>
               <div className="swap-off">
                 <img
                   src="/down-arrow.png"
-                  alt="Avatar Tailwind CSS Component"
+                  alt="Up Arrow"
                 />
               </div>
             </label>
