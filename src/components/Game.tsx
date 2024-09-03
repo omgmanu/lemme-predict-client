@@ -9,6 +9,7 @@ import {
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { BN } from '@coral-xyz/anchor';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
+import { Link } from 'wouter';
 
 export const Game: FC = () => {
   const { connection } = useConnection();
@@ -226,12 +227,12 @@ export const Game: FC = () => {
                 </svg>
                 <span>Game started!</span>
                 <div>
-                  <a
-                    href={`/game/${newGameId?.toString()}`}
+                  <Link
+                    to={`/game/${newGameId?.toString()}`}
                     className="btn btn-sm"
                   >
                     View
-                  </a>
+                  </Link>
                 </div>
               </div>
             </label>
