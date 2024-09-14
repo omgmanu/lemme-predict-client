@@ -1,11 +1,11 @@
 import { FC } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
-import { useWallet } from '@solana/wallet-adapter-react';
 import { GameResult, GameResultStatus } from '../types/game';
 import { Link } from 'wouter';
 import { formatDate, formatSolAmount } from '../utils';
-import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
+import { useUserContext } from '../providers/UserContextProvider';
+import { ConnectWithXButton } from './ConnectWithXButton';
 
 const getGames = async (
   publicKey: string,
@@ -17,7 +17,8 @@ const getGames = async (
 };
 
 export const GamesList: FC = () => {
-  const { publicKey } = useWallet();
+  const { user } = useUserContext();
+  const publicKey = user?.publicKey;
 
   const {
     data: games,
@@ -32,7 +33,7 @@ export const GamesList: FC = () => {
   if (!publicKey) {
     return (
       <div className="container mx-auto max-w-60 my-52 ">
-        <WalletMultiButton>Connect to get started</WalletMultiButton>
+        <ConnectWithXButton />
       </div>
     );
   }
@@ -46,10 +47,10 @@ export const GamesList: FC = () => {
       <p className="mt-6 text-md leading-6 text-gray-400">
         Welcome to your personal hall of fame (or shame)! Here you'll find a
         list of all the games you've bravely (or foolishly) participated in.
-        Check out the your bold predictions, the bet amounts, and the
-        thrilling results. Dive into your game history
-        and remember, those who don't learn from history are doomed to repeat
-        it... but hey, who needs history when you have luck, right?
+        Check out the your bold predictions, the bet amounts, and the thrilling
+        results. Dive into your game history and remember, those who don't learn
+        from history are doomed to repeat it... but hey, who needs history when
+        you have luck, right?
       </p>
 
       <div className="mx-auto mt-10 max-w-2xl lg:mx-0 lg:max-w-none">

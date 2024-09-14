@@ -1,9 +1,12 @@
 import { FC } from 'react';
 import { Link } from 'wouter';
-import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import '@solana/wallet-adapter-react-ui/styles.css';
+import { useUserContext } from '../providers/UserContextProvider';
+import { ConnectWithXButton } from './ConnectWithXButton';
 
 export const AppBar: FC = () => {
+  const { user, logout } = useUserContext();
+
   return (
     <div className="navbar bg-base-300">
       <div className="container mx-auto max-w-2xl md:max-w-4xl px-6 lg:px-8">
@@ -27,7 +30,6 @@ export const AppBar: FC = () => {
             </div>
             <ul
               tabIndex={0}
-              // className="menu menu-sm dropdown-content bg-base-100 rounded-box z-[1] mt-3 w-52 p-2 shadow"
               className="dropdown-content menu z-[1] bg-base-200 p-6 rounded-box shadow w-56 gap-2"
             >
               <li>
@@ -53,7 +55,38 @@ export const AppBar: FC = () => {
           </ul>
         </div>
         <div className="navbar-end flex">
-          <WalletMultiButton />
+          {user ? (
+            <div className="dropdown dropdown-end">
+              <div className="flex items-center">
+                <div className="flex flex-col mr-2">
+                  <span className="text-sm font-medium">{user.name}</span>
+                  <span className="text-xs">{user.username}</span>
+                </div>
+                <div
+                  tabIndex={0}
+                  role="button"
+                  className="btn btn-ghost btn-circle avatar"
+                >
+                  <div className="w-10 rounded-full">
+                    <img alt="User avatar" src={user?.profile_image_url} />
+                  </div>
+                </div>
+              </div>
+              <ul
+                tabIndex={0}
+                className="menu menu-sm dropdown-content bg-base-300 rounded-box z-[1] mt-3 w-32 p-2 shadow"
+              >
+                <li>
+                  <span>Wallet</span>
+                </li>
+                <li>
+                  <span onClick={logout}>Logout</span>
+                </li>
+              </ul>
+            </div>
+          ) : (
+            <ConnectWithXButton />
+          )}
         </div>
       </div>
     </div>
