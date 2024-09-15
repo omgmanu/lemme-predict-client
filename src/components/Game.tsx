@@ -1,19 +1,14 @@
 import { FC, useCallback, useState } from 'react';
-import { SystemProgram, TransactionSignature } from '@solana/web3.js';
-import {
-  program,
-  buildGamePDA,
-  generateGameId,
-  betAmountDivider,
-} from '../anchor/setup';
-import { useConnection, useWallet } from '@solana/wallet-adapter-react';
+import { TransactionSignature } from '@solana/web3.js';
+import { betAmountDivider } from '../anchor/setup';
 import { BN } from '@coral-xyz/anchor';
-import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import { Link } from 'wouter';
+import { useUserContext } from '../providers/UserContextProvider';
+import axios from 'axios';
+import { ConnectWithXButton } from './ConnectWithXButton';
 
 export const Game: FC = () => {
-  const { connection } = useConnection();
-  const { publicKey, sendTransaction } = useWallet();
+  const { user } = useUserContext();
   const [newGameId, setNewGameId] = useState<BN>();
   const [isLoading, setIsLoading] = useState(false);
   const [timeframe, setTimeframe] = useState(60);
@@ -31,66 +26,35 @@ export const Game: FC = () => {
   }, [betAmount]);
 
   const startGame = useCallback(async () => {
-    if (!connection || !publicKey) {
-      return;
-    }
-
-    setIsLoading(true);
-
     try {
-      const gameId = generateGameId();
-      console.log('gameId', gameId.toString());
-      const gamePDA = buildGamePDA(publicKey, gameId);
-
-      console.log('program', program);
-
-      const transaction = await program.methods
-        .newGame(
-          gameId,
-          new BN(timeframe),
-          new BN(formatBetAmountToLamports()),
-          prediction,
+      setIsLoading(true);
+      axios
+        .post(
+          `${import.meta.env.VITE_API_URL}/games/create`,
+          {
+            timeframe,
+            betAmount: formatBetAmountToLamports(),
+            prediction,
+          },
+          {
+            withCredentials: true,
+          },
         )
-        .accounts({
-          player: publicKey,
-          // @ts-expect-error - TODO: fix this
-          game: gamePDA,
-          systemProgram: SystemProgram.programId,
-        })
-        .transaction();
-
-      const latestBlockhash = await connection.getLatestBlockhash();
-
-      transaction.feePayer = publicKey;
-      transaction.recentBlockhash = latestBlockhash.blockhash;
-
-      const transactionSignature = await sendTransaction(
-        transaction,
-        connection,
-      );
-
-      console.log('transactionSignature', transactionSignature);
-      console.log('gameId', gameId.toString());
-      setNewGameTransaction(transactionSignature);
-      setNewGameId(gameId);
+        .then((response) => {
+          const { transactionSignature, gameId } = response.data.message;
+          setNewGameTransaction(transactionSignature);
+          setNewGameId(gameId);
+          setIsLoading(false);
+        });
     } catch (error) {
       console.log(error);
-    } finally {
-      setIsLoading(false);
     }
-  }, [
-    connection,
-    publicKey,
-    timeframe,
-    formatBetAmountToLamports,
-    prediction,
-    sendTransaction,
-  ]);
+  }, [timeframe, formatBetAmountToLamports, prediction]);
 
-  if (!publicKey) {
+  if (!user?.publicKey) {
     return (
       <div className="container mx-auto max-w-60 my-52 ">
-        <WalletMultiButton>Connect to get started</WalletMultiButton>
+        <ConnectWithXButton />
       </div>
     );
   }
@@ -190,10 +154,7 @@ export const Game: FC = () => {
                 <img src="/up-arrow.png" alt="Up arrow" />
               </div>
               <div className="swap-off">
-                <img
-                  src="/down-arrow.png"
-                  alt="Up Arrow"
-                />
+                <img src="/down-arrow.png" alt="Up Arrow" />
               </div>
             </label>
           </label>

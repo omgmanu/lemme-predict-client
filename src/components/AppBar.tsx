@@ -77,7 +77,7 @@ export const AppBar: FC = () => {
                 className="menu menu-sm dropdown-content bg-base-300 rounded-box z-[1] mt-3 w-32 p-2 shadow"
               >
                 <li>
-                  <span>Wallet</span>
+                  <Link href="/wallet">Wallet</Link>
                 </li>
                 <li>
                   <span onClick={logout}>Logout</span>

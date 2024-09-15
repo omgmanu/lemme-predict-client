@@ -1,13 +1,5 @@
 import { FC, useCallback, useEffect, useState } from 'react';
 import { useParams } from 'wouter';
-import { useConnection, useWallet } from '@solana/wallet-adapter-react';
-import {
-  program,
-  buildGamePDA,
-  buildGameResultPDA,
-  GameData,
-  GameResultData,
-} from '../anchor/setup';
 import { BN } from 'bn.js';
 import {
   Game,
@@ -20,6 +12,7 @@ import { useQuery } from '@tanstack/react-query';
 import { formatPythPrice, formatSolAmount } from '../utils';
 import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
+import { useUserContext } from '../providers/UserContextProvider';
 
 const getGame = async (
   gameId: string,
@@ -32,69 +25,15 @@ const getGame = async (
 
 export const GameDetails: FC = () => {
   const { gameId } = useParams();
-  const { connection } = useConnection();
-  const { publicKey } = useWallet();
+  const { user } = useUserContext();
   const [initGame, setInitGame] = useState<Game | null>(null);
   const [gameResult, setGameResult] = useState<GameResult | null>(null);
-  const [gameData, setGameData] = useState<GameData | null>(null);
-  const [gameResultData, setGameResultData] = useState<GameResultData | null>(
-    null,
-  );
 
   const { data: game } = useQuery({
     queryKey: ['game', gameId],
     queryFn: () => getGame(gameId || ''),
     enabled: !!gameId,
   });
-
-  useEffect(() => {
-    if (program && publicKey && gameId) {
-      const gamePDA = buildGamePDA(publicKey, new BN(gameId));
-      let gameResultSubscriptionId: number | null = null;
-
-      program.account.game.fetch(gamePDA).then((data: GameData) => {
-        setGameData(data);
-      });
-
-      try {
-        const gameResultPDA = buildGameResultPDA(new BN(gameId));
-        program.account.gameResult
-          .fetch(gameResultPDA)
-          .then((data: GameResultData) => {
-            setGameResultData(data);
-            console.log(data);
-          });
-
-        gameResultSubscriptionId = connection.onAccountChange(
-          gameResultPDA,
-          (accountInfo) => {
-            setGameResultData(
-              program.coder.accounts.decode('game_result', accountInfo.data),
-            );
-          },
-        );
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      } catch (error) {
-        // game result not available yet
-      }
-
-      // Subscribe to account changes
-      const gameSubscriptionId = connection.onAccountChange(
-        gamePDA,
-        (accountInfo) => {
-          setGameData(program.coder.accounts.decode('game', accountInfo.data));
-        },
-      );
-
-      return () => {
-        // Unsubscribe from account changes
-        connection.removeAccountChangeListener(gameSubscriptionId);
-        if (gameResultSubscriptionId) {
-          connection.removeAccountChangeListener(gameResultSubscriptionId);
-        }
-      };
-    }
-  }, [connection, gameId, publicKey]);
 
   useEffect(() => {
     if (game) {
@@ -104,17 +43,16 @@ export const GameDetails: FC = () => {
   }, [game]);
 
   const displayResult = useCallback(() => {
-    if (!gameResultData) {
+    if (gameResult?.result === undefined) {
       return 'N/A';
     }
 
-    return gameResultData?.result &&
-      new BN(gameResultData?.amountWon).gt(new BN(0))
-      ? `WON ${formatSolAmount(
-          new BN(gameResultData?.amountWon).toNumber(),
-        )} SOL`
+    return gameResult?.result &&
+      gameResult.amountWon &&
+      new BN(gameResult.amountWon).gt(new BN(0))
+      ? `WON ${formatSolAmount(new BN(gameResult?.amountWon).toNumber())} SOL`
       : `LOST`;
-  }, [gameResultData]);
+  }, [gameResult]);
 
   const buildTxUrl = (tx: string) => {
     const cluster =
@@ -125,7 +63,7 @@ export const GameDetails: FC = () => {
     return `${import.meta.env.VITE_EXPLORER_URL}/tx/${tx}${cluster}`;
   };
 
-  if (!publicKey) {
+  if (!user?.publicKey) {
     return (
       <div className="container mx-auto max-w-60 my-52 ">
         <WalletMultiButton>Connect to get started</WalletMultiButton>
@@ -135,10 +73,10 @@ export const GameDetails: FC = () => {
 
   return (
     <div className="container mx-auto max-w-2xl md:max-w-4xl px-6 lg:px-8 my-12">
-      {gameData ? (
+      {game ? (
         <div>
           <h1 className="text-4xl font-bold tracking-tight text-white sm:text-6xl">
-            Game #{gameData.id.toString()}
+            Game #{game.message.game.id.toString()}
           </h1>
           {gameResult?.type === GameResultStatus.PENDING ? (
             <label className="form-control w-full mt-6">
@@ -147,11 +85,11 @@ export const GameDetails: FC = () => {
                 <span>
                   Game is currently running. Result will be available after{' '}
                   {new Date(
-                    gameData.endTime.toNumber() * 1000,
+                    game.message.game.endTime * 1000,
                   ).toLocaleDateString()}{' '}
                   -{' '}
                   {new Date(
-                    gameData.endTime.toNumber() * 1000,
+                    game.message.game.endTime * 1000,
                   ).toLocaleTimeString()}
                   .
                 </span>
@@ -178,8 +116,8 @@ export const GameDetails: FC = () => {
                 <div className="text-lg font-bold">
                   <div
                     className={
-                      gameResultData
-                        ? gameResultData.result
+                      gameResult?.result !== undefined
+                        ? gameResult.result
                           ? 'badge badge-success'
                           : 'badge badge-error'
                         : 'badge badge-neutral'
@@ -187,8 +125,8 @@ export const GameDetails: FC = () => {
                   >
                     {displayResult()}
                   </div>{' '}
-                  {gameResultData?.amountWon &&
-                  new BN(gameResultData?.amountWon).eq(new BN(0))
+                  {gameResult?.amountWon &&
+                  new BN(gameResult?.amountWon).eq(new BN(0))
                     ? '🤷‍♂️'
                     : ''}
                 </div>
@@ -198,7 +136,7 @@ export const GameDetails: FC = () => {
               <div className="icon mr-4">👤</div>
               <div>
                 <div className="text-sm font-medium text-gray-500">Player</div>
-                <div className="text-lg">{gameData?.player.toBase58()}</div>
+                <div className="text-lg">{game.message.game.player}</div>
               </div>
             </div>
             <div className="flex items-center mb-4">
@@ -208,7 +146,7 @@ export const GameDetails: FC = () => {
                   Bet Amount
                 </div>
                 <div className="text-lg">
-                  {formatSolAmount(gameData.betAmount.toNumber())} SOL
+                  {formatSolAmount(game.message.game.betAmount)} SOL
                 </div>
               </div>
             </div>
@@ -222,7 +160,7 @@ export const GameDetails: FC = () => {
                   <div className="mask mask-squircle h-10 w-10">
                     <img
                       src={
-                        gameData.prediction
+                        game.message.game.prediction
                           ? '/up-arrow.png'
                           : '/down-arrow.png'
                       }
@@ -240,11 +178,11 @@ export const GameDetails: FC = () => {
                 </div>
                 <div className="text-lg">
                   {new Date(
-                    gameData.startTime.toNumber() * 1000,
+                    game.message.game.startTime * 1000,
                   ).toLocaleDateString()}{' '}
                   -{' '}
                   {new Date(
-                    gameData.startTime.toNumber() * 1000,
+                    game.message.game.startTime * 1000,
                   ).toLocaleTimeString()}
                   <span className="badge badge-neutral ml-2 text-lg">
                     {gameResult?.priceAtStart
@@ -262,11 +200,11 @@ export const GameDetails: FC = () => {
                 </div>
                 <div className="text-lg">
                   {new Date(
-                    gameData.endTime.toNumber() * 1000,
+                    game.message.game.endTime * 1000,
                   ).toLocaleDateString()}{' '}
                   -{' '}
                   {new Date(
-                    gameData.endTime.toNumber() * 1000,
+                    game.message.game.endTime * 1000,
                   ).toLocaleTimeString()}
                   <span className="badge badge-neutral ml-2 text-lg">
                     {gameResult?.priceAtEnd

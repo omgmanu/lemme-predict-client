@@ -8,6 +8,7 @@ import { Footer } from './components/Footer';
 import { GameDetails } from './components/GameDetails';
 import { Home } from './components/Home';
 import { UserProvider } from './providers/UserContextProvider';
+import { Wallet } from './components/Wallet';
 
 const queryClient = new QueryClient();
 
@@ -22,6 +23,7 @@ export const App: FC = () => {
           <Route path="/game/new" component={Game} />
           <Route path="/game/:gameId" component={GameDetails} />
           <Route path="/games" component={GamesList} />
+          <Route path="/wallet" component={Wallet} />
         </Switch>
 
         <Footer />

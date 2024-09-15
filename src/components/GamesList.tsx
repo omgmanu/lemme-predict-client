@@ -18,19 +18,18 @@ const getGames = async (
 
 export const GamesList: FC = () => {
   const { user } = useUserContext();
-  const publicKey = user?.publicKey;
 
   const {
     data: games,
     isLoading,
     error,
   } = useQuery({
-    queryKey: ['games', publicKey?.toBase58()],
-    queryFn: () => getGames(publicKey?.toBase58() || ''),
-    enabled: !!publicKey,
+    queryKey: ['games', user?.publicKey?.toBase58()],
+    queryFn: () => getGames(user?.publicKey?.toBase58() || ''),
+    enabled: !!user?.publicKey,
   });
 
-  if (!publicKey) {
+  if (!user?.publicKey) {
     return (
       <div className="container mx-auto max-w-60 my-52 ">
         <ConnectWithXButton />

@@ -53,11 +53,7 @@ export function UserProvider({
       );
 
       const { user } = response.data;
-
-      // TODO: replace this with the actual public key
-      user.publicKey = new PublicKey(
-        'HZVDRbLnE1v85eD5vkKqEoqxWFDetpW3YSsmtBK5ytaZ',
-      );
+      user.publicKey = new PublicKey(user.publicKey);
 
       return { user };
     } catch (error: unknown) {
