@@ -10,9 +10,9 @@ import {
 import axios from 'axios';
 import { useQuery } from '@tanstack/react-query';
 import { formatPythPrice, formatSolAmount } from '../utils';
-import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
-import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import { useUserContext } from '../providers/UserContextProvider';
+import { ConnectWithXButton } from './ConnectWithXButton';
+import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
 
 const getGame = async (
   gameId: string,
@@ -66,7 +66,7 @@ export const GameDetails: FC = () => {
   if (!user?.publicKey) {
     return (
       <div className="container mx-auto max-w-60 my-52 ">
-        <WalletMultiButton>Connect to get started</WalletMultiButton>
+        <ConnectWithXButton />
       </div>
     );
   }
