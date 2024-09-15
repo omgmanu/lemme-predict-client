@@ -29,7 +29,7 @@ WORKDIR /app
 COPY . .
 
 # Expose the port the app runs on
-EXPOSE 3000
+EXPOSE ${PORT}
 
 # Start the server
 CMD ["serve", "-s", "dist"]
