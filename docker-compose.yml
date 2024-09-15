@@ -5,6 +5,7 @@ services:
       context: .
     environment:
       - NODE_ENV=production
+      - PORT=${PORT}
       - VITE_API_URL=${VITE_API_URL}
       - VITE_EXPLORER_URL=${VITE_EXPLORER_URL}
       - VITE_NETWORK=${VITE_NETWORK}
