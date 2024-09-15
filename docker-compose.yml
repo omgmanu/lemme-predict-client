@@ -3,6 +3,9 @@ services:
     container_name: react_vite_app
     build:
       context: .
+    ports:
+      - ${PORT}:${PORT}
+    command: serve -s dist
     environment:
       - NODE_ENV=production
       - PORT=${PORT}

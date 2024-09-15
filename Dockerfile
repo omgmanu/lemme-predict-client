@@ -32,4 +32,4 @@ COPY . .
 EXPOSE ${PORT}
 
 # Start the server
-CMD ["serve", "-s", "dist"]
+# CMD ["serve", "-s", "dist"]
